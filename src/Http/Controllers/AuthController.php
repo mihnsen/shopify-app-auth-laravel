@@ -23,7 +23,7 @@ class AuthController
 
     public function installShop(Request $request, $appName)
     {
-        $shopifyAppConfig = config('shopify-auth.'.$appName);
+        $shopifyAppConfig = config('shopify_apps.'.$appName);
         $shopUrl = $request->get('shop');
 
         if (!$shopUrl) {
@@ -53,7 +53,7 @@ class AuthController
 
     public function processOAuthResultRedirect(Request $request, $appName)
     {
-        $shopifyAppConfig = config('shopify-auth.'.$appName);
+        $shopifyAppConfig = config('shopify_apps.'.$appName);
         $code = $request->get('code');
         $shopUrl = $request->get('shop');
 
@@ -75,7 +75,7 @@ class AuthController
 
     public function getSuccessPage($appName)
     {
-        $shopifyAppConfig = config('shopify-auth.'.$appName);
+        $shopifyAppConfig = config('shopify_apps.'.$appName);
 
         return view($shopifyAppConfig['view_install_success_path']);
     }

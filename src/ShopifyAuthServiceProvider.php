@@ -22,7 +22,7 @@ class ShopifyAuthServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/routes/web.php');
 
         $this->publishes([
-            __DIR__.'/config/shopify-auth.php' => config_path('shopify-auth.php'),
+            __DIR__.'/config/shopify_apps.php' => config_path('shopify_apps.php'),
         ]);
 
         $this->loadMigrationsFrom(__DIR__.'/Migrations');

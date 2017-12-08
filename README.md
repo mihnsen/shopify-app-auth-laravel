@@ -14,7 +14,7 @@ Add to Providers in config/app.php
 
 ### Setup Views
 #### Install Success page
-In your resources/views folder, create your folder and install-sucess.blade.php file, and then within `shopify-auth.app_name`, set your `view_install_success_path` value to whatever it is (see below in configure app for example).
+In your resources/views folder, create your folder and install-sucess.blade.php file, and then within `shopify_apps.app_name`, set your `view_install_success_path` value to whatever it is (see below in configure app for example).
 
 ### Auth Middleware
 Set the middleware on routes - ensure that ShopifyAuthCheck if sitting around the routes. Web too, but I think that is standard in the web.php file. Also note that when creating routes, the appname must be second in the url route e.g. apps/app_name/create.
@@ -62,7 +62,7 @@ You can change this to be whatever you like so you can run multiple apps through
 All shopify calls should be made through a service and make a call similar to below:
 ```php
 // $appName comes from url passed into method as param (look at middleware)
-$shopifyAppConfig = config('shopify-auth.'.$appName);
+$shopifyAppConfig = config('shopify_apps.'.$appName);
 
 / call shopify api
 $this->shopify
@@ -103,7 +103,7 @@ public function getDashboard()
         'app_name' => $appName,
     ])->first();
 
-    $appConfig = config('shopify-auth.' . $appName);
+    $appConfig = config('shopify_apps.' . $appName);
 
     $this->checkExistsAndCreateScriptTag($shopUrl, $user->access_token, $user, $appName);
 

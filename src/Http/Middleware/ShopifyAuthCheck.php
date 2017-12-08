@@ -78,7 +78,7 @@ class ShopifyAuthCheck
             ]);
 
             // set secret for hmac check
-            $appConfig = config('shopify-auth.' . $appName);
+            $appConfig = config('shopify_apps.' . $appName);
             $this->shopify->setSecret($appConfig['secret']);
 
             // check hmac
