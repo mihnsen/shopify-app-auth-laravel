@@ -116,7 +116,7 @@ class ShopifyApi
     private function makeRequest($method, $uri, $params = [], $headers = [])
     {
         $query = in_array($method, ['get','delete']) ? "query" : "json";
-        $response = $this->client->request(strtoupper($method), $this->baseUrl().$uri, [
+        $response = $this->client->request(strtoupper($method), $this->baseUrl() . $uri, [
             'headers' => array_merge($headers, $this->requestHeaders),
             $query => $params,
             'timeout' => 60.0,

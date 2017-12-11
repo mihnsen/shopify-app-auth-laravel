@@ -17,9 +17,7 @@ class ShopifyAuthService
 {
     protected $shopify;
 
-    public function __construct(
-        ShopifyApi $shopify
-    ) {
+    public function __construct(ShopifyApi $shopify) {
         $this->shopify = $shopify;
     }
 
@@ -89,6 +87,13 @@ class ShopifyAuthService
         return true;
     }
 
+    /**
+     * Hanlde webhooks for apps
+     * Now just uninstall app is fine
+     * Other is for the future
+     *
+     * @see https://help.shopify.com/api/reference/webhook#index
+     */
     public function checkAndAddWebhookForUninstall($shopUrl, $accessToken, $shopifyUser, $shopifyAppConfig)
     {
         // if webhook already exists in DB, return true
@@ -96,10 +101,16 @@ class ShopifyAuthService
             if ($hook->shopify_app === $shopifyAppConfig['name']) return true;
         }
 
+        if (App::environment('local')) {
+            $uninstallUrl = env('APP_URL', 'http://shopego.com') . 'webhooks/' . $shopifyAppConfig['name'] . '/uninstalled';
+        } else {
+            $uninstallUrl = url('webhooks/' . $shopifyAppConfig['name'] . '/uninstalled');
+        }
+
         $uninstallWebhook = [
             "webhook" => [
                 "topic" => "app/uninstalled",
-                "address" => url('webhooks/' . $shopifyAppConfig['name'] . '/uninstalled'),
+                "address" => $uninstallUrl,
                 "format" => "json"
             ],
         ];

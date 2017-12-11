@@ -44,18 +44,22 @@ class ShopifyAuthCheck
         $reSetSession = false;
 
         // recheck session if set
-        if (null !== ($request->get('shop')) && $request->session()->has('shopifyapp')) {
-            $shopifyUser = $this->shopifyAuthService->getUserForApp($request->get('shop'), $appName);
-            $shopifyApp = $shopifyUser->shopifyAppUsers->last();
+        if ($request->session()->has('shopifyapp')) {
             $appSession = $request->session()->get('shopifyapp');
+            $shopifyUser = $this->shopifyAuthService->getUserForApp($appSession['shop_url'], $appName);
+            $shopifyApp = $shopifyUser->shopifyAppUsers()->latest()->first();
 
             if ($shopifyApp->access_token !== $appSession['access_token']) {
                 $reSetSession = true;
             }
         }
 
-        // If no session, get user & set one 
+        // If no session, get user & set one
         if (!$request->session()->has('shopifyapp') || $reSetSession) {
+
+            // TODO redirect to login or handle url request to
+            // Should be revised
+            // http://shopego.com/app_name?shop=lego-dev.myshopify.com
             $shopUrl = $request->get('shop');
             $shopifyUser = $this->shopifyAuthService->getUserForApp($shopUrl, $appName);
 
@@ -63,7 +67,10 @@ class ShopifyAuthCheck
                 return abort(403, 'No shopify user found and no active sessions');
             }
 
-            $shopifyApp = $shopifyUser->shopifyAppUsers->last();
+            // FIXME Change method select last user
+            // Should be revised
+            //$shopifyApp = $shopifyUser->shopifyAppUsers->last();
+            $shopifyApp = $shopifyUser->shopifyAppUsers()->latest()->first();
             $request->session()->put('shopifyapp', [
                 'shop_url' => $shopUrl,
                 'access_token' => $shopifyApp->access_token,

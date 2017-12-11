@@ -15,14 +15,12 @@ class AuthController
     protected $shopifyAuthService;
     protected $shopifyAppConfig;
 
-    public function __construct(ShopifyApi $shopify, ShopifyAuthService $shopifyAuthService)
-    {
+    public function __construct(ShopifyApi $shopify, ShopifyAuthService $shopifyAuthService) {
         $this->shopify = $shopify;
         $this->shopifyAuthService = $shopifyAuthService;
     }
 
-    public function installShop(Request $request, $appName)
-    {
+    public function installShop(Request $request, $appName) {
         $shopifyAppConfig = config('shopify_apps.'.$appName);
         $shopUrl = $request->get('shop');
 
@@ -35,11 +33,21 @@ class AuthController
         $appName = $shopifyAppConfig['name'];
 
         $user = ShopifyUser::where('shop_url', $shopUrl)->whereHas('shopifyAppUsers', function($query) use ($appName) {
-            $query->whereShopifyAppName($appName);
-        })->get();
+            $query->where('shopify_app_name', $appName);
+        })->first();
 
         // if existing user for this app, send to dashboard
-        if ($user !== null && !$user->isEmpty() && $user->shopifyAppUsers->count()) {
+        if ($user) {
+
+            // Set token
+            $shopifyApp = $user->shopifyAppUsers()->latest()->first();
+
+            $request->session()->put('shopifyapp', [
+                'shop_url' => $shopUrl,
+                'access_token' => $shopifyApp->access_token,
+                'app_name' => $appName,
+            ]);
+
             return redirect()->to($shopifyAppConfig['dashboard_url']);
         }
 
@@ -51,8 +59,7 @@ class AuthController
         return redirect()->to($shopify->getAuthorizeUrl($scope, $redirectUrl));
     }
 
-    public function processOAuthResultRedirect(Request $request, $appName)
-    {
+    public function processOAuthResultRedirect(Request $request, $appName) {
         $shopifyAppConfig = config('shopify_apps.'.$appName);
         $code = $request->get('code');
         $shopUrl = $request->get('shop');
@@ -70,18 +77,29 @@ class AuthController
         ];
         $queryString = http_build_query($queryString) . "\n";
 
+        // TODO set session when redirect from shopify shop admin
+        //
+        //$request->session()->put('shopifyapp', [
+            //'shop_url' => $shopUrl,
+            //'access_token' => $shopifyApp->access_token,
+            //'app_name' => $appName,
+        //]);
+
         return redirect()->to($shopifyAppConfig['success_url'] . '?' . $queryString)->with('shopUrl', $shopUrl);
     }
 
-    public function getSuccessPage($appName)
-    {
+    public function getSuccessPage($appName) {
         $shopifyAppConfig = config('shopify_apps.'.$appName);
 
         return view($shopifyAppConfig['view_install_success_path']);
     }
 
-    public function handleAppUninstallation(Request $request, $appName)
-    {
+    /**
+     * Handle webhooks uninstall apps
+     *
+     * @see https://help.shopify.com/api/reference/webhook#index
+     */
+    public function handleAppUninstallation(Request $request, $appName) {
         $shopUrl = $request->get('domain');
 
         \Log::info('handle uninstall webhook');
@@ -109,7 +127,7 @@ class AuthController
             'shop_url' => $shopUrl,
             'shopify_app' => $appName,
         ])->get();
-        
+
         foreach ($tags as $tag) {
             $tag->delete();
         }
